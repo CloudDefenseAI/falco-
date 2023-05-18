@@ -2863,19 +2863,31 @@ FILLER(execve_family_flags, true)
 
 	/* Parameter 21: cap_inheritable (type: PT_UINT64) */
 	kernel_cap_t cap = _READ(cred->cap_inheritable);
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,3,0)
+	res = bpf_val_to_ring(data, capabilities_to_scap(((unsigned long)cap.val << 32) | cap.val));
+	#else
 	res = bpf_val_to_ring(data, capabilities_to_scap(((unsigned long)cap.cap[1] << 32) | cap.cap[0]));
+	#endif
 	CHECK_RES(res);
 
 	/* Parameter 22: cap_permitted (type: PT_UINT64) */
 	cap = _READ(cred->cap_permitted);
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,3,0)
+	res = bpf_val_to_ring(data, capabilities_to_scap(((unsigned long)cap.val << 32) | cap.val));
+	#else
 	res = bpf_val_to_ring(data, capabilities_to_scap(((unsigned long)cap.cap[1] << 32) | cap.cap[0]));
+	#endif
 	CHECK_RES(res);
 
 	/* Parameter 23: cap_effective (type: PT_UINT64) */
 	cap = _READ(cred->cap_effective);
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,3,0)
+	res = bpf_val_to_ring(data, capabilities_to_scap(((unsigned long)cap.val << 32) | cap.val));
+	#else
 	res = bpf_val_to_ring(data, capabilities_to_scap(((unsigned long)cap.cap[1] << 32) | cap.cap[0]));
-	CHECK_RES(res);
 
+	#endif
+	CHECK_RES(res);
 	/* Parameter 24: exe_file ino (type: PT_UINT64) */
 	unsigned long ino = _READ(inode->i_ino);
 	res = bpf_val_to_ring_type(data, ino, PT_UINT64);
@@ -5996,19 +6008,33 @@ FILLER(sys_capset_x, true)
 	struct cred *cred = (struct cred*) _READ(task->cred);
 
 	cap = _READ(cred->cap_inheritable);
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,3,0)
+	val = ((unsigned long)cap.val << 32) | cap.val;
+	#else
 	val = ((unsigned long)cap.cap[1] << 32) | cap.cap[0];
+	#endif
 	res = bpf_val_to_ring(data, capabilities_to_scap(val));
 	if(unlikely(res != PPM_SUCCESS))
 		return res;
 
 	cap = _READ(cred->cap_permitted);
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,3,0)
+	val = ((unsigned long)cap.val << 32) | cap.val;
+	#else
 	val = ((unsigned long)cap.cap[1] << 32) | cap.cap[0];
+
+	#endif
 	res = bpf_val_to_ring(data, capabilities_to_scap(val));
 	if(unlikely(res != PPM_SUCCESS))
 		return res;
 
 	cap = _READ(cred->cap_effective);
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,3,0)
+	val = ((unsigned long)cap.val << 32) | cap.val;
+	#else
 	val = ((unsigned long)cap.cap[1] << 32) | cap.cap[0];
+
+	#endif
 	res = bpf_val_to_ring(data, capabilities_to_scap(val));
 	if(unlikely(res != PPM_SUCCESS))
 		return res;
